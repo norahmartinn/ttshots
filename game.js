@@ -5,12 +5,14 @@ const startScreen = document.getElementById("startScreen");
 const gameOverScreen = document.getElementById("gameOverScreen");
 const finalScore = document.getElementById("finalScore");
 
+const groundY = 580;
+
 let ball, hoop, score, timeLeft, gameOver, playing;
 
 function initGame() {
   ball = {
     x: 200,
-    y: 500,
+    y: groundY - 15,
     radius: 15,
     velocity: 0,
     gravity: 0.5,
@@ -58,6 +60,19 @@ function update() {
   ball.velocity += ball.gravity;
   ball.y += ball.velocity;
 
+  // Evitar que la bola caiga debajo del suelo
+  if (ball.y + ball.radius > groundY) {
+    ball.y = groundY - ball.radius;
+
+    // Rebote con pérdida de energía
+    ball.velocity = -ball.velocity * 0.7;
+
+    // Parar rebotes muy pequeños
+    if (Math.abs(ball.velocity) < 1) {
+      ball.velocity = 0;
+    }
+  }
+
   // Encesta
   if (
     ball.x > hoop.x &&
@@ -69,13 +84,13 @@ function update() {
     scoreDiv.textContent = "Score: " + score;
     hoop.x = Math.random() * 300 + 50;
     hoop.y = Math.random() * 300 + 100;
-    ball.y = 500;
+    ball.y = groundY - ball.radius;
     ball.velocity = 0;
     timeLeft = 3;
   }
 
-  // Fuera de la pantalla o tiempo agotado
-  if (ball.y > canvas.height || timeLeft <= 0) {
+  // Tiempo agotado
+  if (timeLeft <= 0) {
     playing = false;
     gameOver = true;
     finalScore.textContent = "Puntuación: " + score;
@@ -87,6 +102,10 @@ function update() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Suelo
+  ctx.fillStyle = "#654321";
+  ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 
   // Aro
   ctx.fillStyle = "orange";
